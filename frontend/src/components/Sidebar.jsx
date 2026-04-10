@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { BarChart3, Briefcase, CreditCard, LogOut, UserCircle, Wallet } from "lucide-react";
+import { Activity, BarChart3, Briefcase, CreditCard, LogOut, ShieldCheck, UserCircle, Wallet } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "./ThemeToggle";
@@ -20,7 +20,7 @@ export default function Sidebar() {
     <aside className="border-b border-slate-200/70 bg-white/78 p-4 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate/72 lg:min-h-screen lg:border-b-0 lg:border-r lg:p-5">
       <div className="flex items-center justify-between lg:block">
         <div className="flex items-start gap-3 lg:block">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-sm font-semibold tracking-[0.16em] text-white dark:bg-brand dark:text-ink">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#09111f_0%,#18304c_100%)] text-sm font-semibold tracking-[0.16em] text-white dark:bg-brand dark:text-ink">
             FP
           </div>
           <div>
@@ -35,6 +35,21 @@ export default function Sidebar() {
         </div>
         <div className="lg:mt-6">
           <ThemeToggle />
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 lg:mt-8">
+        <div className="rounded-[24px] border border-slate-200/70 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
+            <Activity size={14} />
+            System status
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-950 dark:text-white">Portfolio sync</span>
+            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
+              Active
+            </span>
+          </div>
         </div>
       </div>
 
@@ -76,6 +91,10 @@ export default function Sidebar() {
         <div className="mt-3 text-sm font-medium">{user?.username || "Analyst"}</div>
         <div className="mt-1 text-sm text-slate-500 dark:text-slate-300">
           Risk appetite: <span className="font-medium capitalize text-slate-700 dark:text-slate-100">{user?.risk_appetite}</span>
+        </div>
+        <div className="mt-4 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300">
+          <ShieldCheck size={16} />
+          Institutional-grade monitoring
         </div>
       </div>
 

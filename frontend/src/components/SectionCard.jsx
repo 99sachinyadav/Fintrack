@@ -6,7 +6,11 @@ export default function SectionCard({ title, subtitle, actions, children, classN
       {(title || actions) && (
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            {title ? <h2 className="text-[1.15rem] font-semibold tracking-[-0.02em]">{title}</h2> : null}
+            {title ? (
+              <h2 className="text-[1.15rem] font-semibold tracking-[-0.02em] text-slate-950 dark:text-white">
+                {title}
+              </h2>
+            ) : null}
             {subtitle ? (
               <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-300">{subtitle}</p>
             ) : null}

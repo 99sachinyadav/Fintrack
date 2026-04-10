@@ -54,19 +54,22 @@ export default function TransactionsPage() {
               value={form[field]}
               placeholder={field.replaceAll("_", " ")}
               onChange={(event) => setForm({ ...form, [field]: event.target.value })}
-              className="rounded-2xl border border-slate-200 px-4 py-3 dark:border-white/10 dark:bg-white/5"
+              className="field-control"
             />
           ))}
           <select
             name="transaction_type"
             value={form.transaction_type}
             onChange={(event) => setForm({ ...form, transaction_type: event.target.value })}
-            className="rounded-2xl border border-slate-200 px-4 py-3 dark:border-white/10 dark:bg-white/5"
+            className="field-control"
           >
             <option value="debit">Debit</option>
             <option value="credit">Credit</option>
           </select>
-          <button type="submit" className="rounded-2xl bg-slate-900 px-4 py-3 font-semibold text-white dark:bg-brand dark:text-ink">
+          <button
+            type="submit"
+            className="rounded-2xl bg-slate-900 px-4 py-3 font-semibold text-white dark:bg-brand dark:text-ink"
+          >
             Save transaction
           </button>
         </form>
@@ -74,23 +77,28 @@ export default function TransactionsPage() {
 
       <div className="grid gap-6">
         <SectionCard title="Monthly expense trend" subtitle="Track monthly spending behavior">
-          <ExpenseBarChart
-            data={summary.filter((item) => item.transaction_type === "debit")}
-          />
+          <ExpenseBarChart data={summary.filter((item) => item.transaction_type === "debit")} />
         </SectionCard>
         <SectionCard title="Transaction feed" subtitle="Manual entries plus webhook imports">
           <div className="grid gap-3">
             {transactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between rounded-2xl border border-slate-200/70 p-4 dark:border-white/10">
+              <div
+                key={transaction.id}
+                className="flex flex-col gap-3 rounded-2xl border border-slate-200/70 bg-white/45 p-4 dark:border-white/10 dark:bg-white/5 sm:flex-row sm:items-center sm:justify-between"
+              >
                 <div>
-                  <div className="font-semibold">{transaction.category}</div>
+                  <div className="font-semibold text-slate-950 dark:text-white">{transaction.category}</div>
                   <div className="text-sm text-slate-500 dark:text-slate-300">
                     {transaction.provider} · {transaction.transaction_type}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-semibold">{formatCurrency(transaction.amount, transaction.currency)}</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-300">{new Date(transaction.occurred_at).toLocaleString()}</div>
+                <div className="text-left sm:text-right">
+                  <div className="font-semibold text-slate-950 dark:text-white">
+                    {formatCurrency(transaction.amount, transaction.currency)}
+                  </div>
+                  <div className="text-sm text-slate-500 dark:text-slate-300">
+                    {new Date(transaction.occurred_at).toLocaleString()}
+                  </div>
                 </div>
               </div>
             ))}

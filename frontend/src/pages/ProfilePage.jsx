@@ -50,14 +50,14 @@ export default function ProfilePage() {
               placeholder={label}
               value={form[name]}
               onChange={(event) => setForm({ ...form, [name]: event.target.value })}
-              className="rounded-2xl border border-slate-200 px-4 py-3 dark:border-white/10 dark:bg-white/5"
+              className="field-control"
             />
           ))}
           <select
             name="risk_appetite"
             value={form.risk_appetite}
             onChange={(event) => setForm({ ...form, risk_appetite: event.target.value })}
-            className="rounded-2xl border border-slate-200 px-4 py-3 dark:border-white/10 dark:bg-white/5"
+            className="field-control"
           >
             <option value="low">Low risk</option>
             <option value="medium">Medium risk</option>
@@ -77,21 +77,21 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={() => triggerNotification("monthly")}
-            className="rounded-2xl border border-slate-200 px-4 py-3 text-left dark:border-white/10"
+            className="secondary-action px-4 py-3 text-left"
           >
             Send monthly expense summary
           </button>
           <button
             type="button"
             onClick={() => triggerNotification("profit")}
-            className="rounded-2xl border border-slate-200 px-4 py-3 text-left dark:border-white/10"
+            className="secondary-action px-4 py-3 text-left"
           >
             Send profit/loss report
           </button>
           <button
             type="button"
             onClick={() => triggerNotification("loan")}
-            className="rounded-2xl border border-slate-200 px-4 py-3 text-left dark:border-white/10"
+            className="secondary-action px-4 py-3 text-left"
           >
             Send loan warning
           </button>

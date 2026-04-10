@@ -53,15 +53,18 @@ export default function LoansPage() {
                 placeholder={label}
                 value={form[name]}
                 onChange={(event) => setForm({ ...form, [name]: event.target.value })}
-                className="rounded-2xl border border-slate-200 px-4 py-3 dark:border-white/10 dark:bg-white/5"
+                className="field-control"
               />
             ))}
-            <button type="submit" className="rounded-2xl bg-slate-900 px-4 py-3 font-semibold text-white dark:bg-brand dark:text-ink">
+            <button
+              type="submit"
+              className="rounded-2xl bg-slate-900 px-4 py-3 font-semibold text-white dark:bg-brand dark:text-ink"
+            >
               Calculate EMI
             </button>
           </form>
           {emiResult ? (
-            <div className="mt-5 rounded-2xl bg-slate-100 p-4 dark:bg-white/5">
+            <div className="mt-5 rounded-2xl bg-slate-100 p-4 text-slate-950 dark:bg-white/5 dark:text-white">
               <div className="text-sm text-slate-500 dark:text-slate-300">Monthly EMI</div>
               <div className="mt-2 text-3xl font-semibold">{formatCurrency(emiResult.emi)}</div>
             </div>
@@ -71,10 +74,15 @@ export default function LoansPage() {
         <SectionCard title="Loan recommendations" subtitle="Ranked by EMI safety and dynamic trust score">
           <div className="grid gap-4">
             {recommendations.map((item, index) => (
-              <div key={`${item.provider.id}-${item.tenure_months}-${index}`} className="rounded-[24px] border border-slate-200/70 p-5 dark:border-white/10">
+              <div
+                key={`${item.provider.id}-${item.tenure_months}-${index}`}
+                className="rounded-[24px] border border-slate-200/70 bg-white/45 p-5 dark:border-white/10 dark:bg-white/5"
+              >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <div className="text-lg font-semibold">{item.provider.name}</div>
+                    <div className="text-lg font-semibold text-slate-950 dark:text-white">
+                      {item.provider.name}
+                    </div>
                     <div className="text-sm text-slate-500 dark:text-slate-300">
                       {item.provider.interest_rate}% interest · reliability {item.provider.reliability_factor}
                     </div>
@@ -102,8 +110,11 @@ export default function LoansPage() {
       <SectionCard title="Provider trust board" subtitle="Interest efficiency blended with reliability factor">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {providers.map((provider) => (
-            <div key={provider.id} className="rounded-[24px] border border-slate-200/70 p-5 dark:border-white/10">
-              <div className="text-lg font-semibold">{provider.name}</div>
+            <div
+              key={provider.id}
+              className="rounded-[24px] border border-slate-200/70 bg-white/45 p-5 dark:border-white/10 dark:bg-white/5"
+            >
+              <div className="text-lg font-semibold text-slate-950 dark:text-white">{provider.name}</div>
               <div className="mt-4 grid gap-2 text-sm text-slate-500 dark:text-slate-300">
                 <div>Interest rate: {provider.interest_rate}%</div>
                 <div>Reliability factor: {provider.reliability_factor}</div>
@@ -120,7 +131,7 @@ export default function LoansPage() {
 
 function Metric({ label, value }) {
   return (
-    <div className="rounded-2xl bg-slate-100/80 p-4 dark:bg-white/5">
+    <div className="rounded-2xl bg-slate-100/80 p-4 text-slate-950 dark:bg-white/5 dark:text-white">
       <div className="text-sm text-slate-500 dark:text-slate-300">{label}</div>
       <div className="mt-2 font-semibold">{value}</div>
     </div>
