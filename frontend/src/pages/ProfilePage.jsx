@@ -17,7 +17,16 @@ export default function ProfilePage() {
 
   const saveProfile = async (event) => {
     event.preventDefault();
-    const response = await authApi.updateProfile(form);
+    const payload = {
+      ...form,
+      username: form.username.trim(),
+      income: form.income === "" ? 0 : Number(form.income),
+      savings: form.savings === "" ? 0 : Number(form.savings),
+      liabilities: form.liabilities === "" ? 0 : Number(form.liabilities),
+      monthly_loan_obligation:
+        form.monthly_loan_obligation === "" ? 0 : Number(form.monthly_loan_obligation),
+    };
+    const response = await authApi.updateProfile(payload);
     setUser(response.data);
     setMessage("Profile updated.");
   };
@@ -64,7 +73,7 @@ export default function ProfilePage() {
             <option value="high">High risk</option>
           </select>
           <div className="md:col-span-2">
-            <button type="submit" className="rounded-2xl bg-slate-900 px-4 py-3 font-semibold text-white dark:bg-brand dark:text-ink">
+            <button type="submit" className="primary-action px-4 py-3 font-semibold">
               Save profile
             </button>
           </div>

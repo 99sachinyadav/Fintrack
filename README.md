@@ -1,19 +1,22 @@
-# Central Banking Management System
+# Smart Finance Advisor
 
-Production-oriented fintech web application built with Django, DRF, React, Tailwind CSS, Recharts, Neon PostgreSQL, JWT auth, Stripe, Razorpay, and Resend.
+Production-oriented fintech web application built with Django, DRF, React, Tailwind CSS, Recharts, Neon PostgreSQL, JWT auth, Stripe webhooks, and SMTP email.
 
 ## Architecture
 
 - Backend: Django + Django REST Framework + SimpleJWT
 - Frontend: React + Vite + Tailwind CSS + Recharts
 - Database: Neon PostgreSQL via `DATABASE_URL`
-- Integrations: CoinGecko, Alpha Vantage, Gold API, Stripe, Razorpay, Resend
+- Integrations: CoinGecko, Alpha Vantage, Gold API, Stripe, SMTP (Gmail/SendGrid)
 
 ## Backend apps
 
 - `users`
 - `investments`
 - `transactions`
+- `market_data`
+- `recommendations`
+- `payments`
 - `analytics`
 - `loans`
 - `notifications`
@@ -24,11 +27,14 @@ Production-oriented fintech web application built with Django, DRF, React, Tailw
 - JWT register/login and user financial profile
 - Investment CRUD for gold, stocks, and crypto
 - Price fetch adapters and moving-average BUY/SELL/HOLD suggestions
-- Expense tracking with webhook ingestion for Stripe and Razorpay
+- Automated transaction tracking from Stripe events only (`payment_intent.succeeded`, `charge.succeeded`, `invoice.paid`, `checkout.session.completed`)
+- Stripe Checkout session API, payment link API, and verified webhook endpoint at `/api/payments/webhook/`
+- Auto categorization (metadata/merchant/description) and automatic balance update
 - Analytics dashboard endpoints for portfolio growth, monthly spending, category spend, and net worth
 - Financial health scoring and loan recommendation engine with trust scoring
 - EMI calculator API and frontend tools
-- Resend-powered monthly summary, profit/loss, and loan warning emails
+- SMTP-powered payment receipts, monthly summary, profit/loss, and loan warning emails
+- Role-aware flows: `user`, `loan_provider`, and `admin`; provider dashboard + loan applications
 
 ## Setup
 
@@ -55,9 +61,9 @@ Production-oriented fintech web application built with Django, DRF, React, Tailw
 ## Notes
 
 - Live market APIs require provider keys and symbols in the formats expected by those services.
-- Stripe and Razorpay webhook handlers are signature-aware and idempotent by event ID.
+- Stripe webhook handler is signature-verified and idempotent by event ID.
 - Loan recommendations depend on seeded `LoanProvider` rows.
-- Resend email endpoints require `RESEND_API_KEY` and `RESEND_FROM_EMAIL`.
+- SMTP email endpoints require `EMAIL_HOST`, `EMAIL_HOST_USER`, and `EMAIL_HOST_PASSWORD`.
 
 ## API reference
 

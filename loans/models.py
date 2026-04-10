@@ -6,6 +6,13 @@ from django.db import models
 
 
 class LoanProvider(models.Model):
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="managed_loan_providers",
+    )
     name = models.CharField(max_length=120)
     interest_rate = models.DecimalField(
         max_digits=6,
@@ -47,3 +54,26 @@ class LoanRecommendation(models.Model):
 
     class Meta:
         ordering = ["-trust_score", "emi"]
+
+
+class LoanApplication(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="loan_applications",
+    )
+    provider = models.ForeignKey(
+        LoanProvider,
+        on_delete=models.CASCADE,
+        related_name="applications",
+    )
+    amount_requested = models.DecimalField(max_digits=14, decimal_places=2)
+    tenure_months = models.PositiveIntegerField()
+    note = models.CharField(max_length=255, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)

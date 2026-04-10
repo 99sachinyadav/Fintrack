@@ -1,8 +1,7 @@
-import json
 from datetime import datetime
-from urllib import request
 
 from django.conf import settings
+from django.core.mail import send_mail
 from django.db.models import Sum
 
 from investments.models import Investment
@@ -12,43 +11,30 @@ from transactions.models import Transaction
 
 
 def _send_email(user, notification_type, subject, html):
-    log = NotificationLog.objects.create(
-        user=user,
-        notification_type=notification_type,
-        subject=subject,
-        payload={"html": html},
-    )
-    if not settings.RESEND_API_KEY:
-        log.status = NotificationLog.Status.FAILED
-        log.payload["error"] = "Missing Resend API key."
-        log.save(update_fields=["status", "payload"])
-        return {"message": "Resend API key missing.", "status": "failed"}
-
-    body = json.dumps(
-        {
-            "from": settings.RESEND_FROM_EMAIL,
-            "to": [user.email],
-            "subject": subject,
-            "html": html,
-        }
-    ).encode("utf-8")
-    req = request.Request(
-        "https://api.resend.com/emails",
-        data=body,
-        headers={
-            "Authorization": f"Bearer {settings.RESEND_API_KEY}",
-            "Content-Type": "application/json",
-        },
-        method="POST",
-    )
     try:
-        with request.urlopen(req, timeout=15) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        log = NotificationLog.objects.create(
+            user=user,
+            notification_type=notification_type,
+            subject=subject,
+            payload={"html": html},
+        )
+    except Exception as exc:
+        print("Failed to create NotificationLog:", exc)
+        return {"message": "Email logging failed", "status": "failed"}
+    try:
+        send_mail(
+            subject=subject,
+            message=html,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+            html_message=html,
+        )
         log.status = NotificationLog.Status.SENT
         log.sent_at = datetime.utcnow()
-        log.payload["response"] = payload
+        log.payload["transport"] = "smtp"
         log.save(update_fields=["status", "sent_at", "payload"])
-        return {"message": "Email sent.", "status": "sent", "payload": payload}
+        return {"message": "Email sent.", "status": "sent"}
     except Exception as exc:
         log.status = NotificationLog.Status.FAILED
         log.payload["error"] = str(exc)
@@ -60,7 +46,7 @@ def send_monthly_expense_summary_email(user):
     total = (
         Transaction.objects.filter(
             user=user,
-            transaction_type=Transaction.TransactionType.DEBIT,
+            transaction_type=Transaction.TransactionType.EXPENSE,
         ).aggregate(total=Sum("amount"))["total"]
         or 0
     )
@@ -102,5 +88,22 @@ def send_loan_warning_email(user):
         user,
         NotificationLog.NotificationType.LOAN_WARNING,
         "Loan burden warning",
+        html,
+    )
+
+
+def send_payment_receipt_email(user, transaction):
+    kind = "Income" if transaction.transaction_type == Transaction.TransactionType.INCOME else "Expense"
+    html = (
+        "<h1>Payment Receipt</h1>"
+        f"<p>Type: {kind}</p>"
+        f"<p>Amount: {transaction.amount} {transaction.currency}</p>"
+        f"<p>Category: {transaction.category}</p>"
+        f"<p>Transaction ID: {transaction.stripe_payment_id or transaction.external_id}</p>"
+    )
+    return _send_email(
+        user,
+        NotificationLog.NotificationType.MONTHLY_EXPENSE,
+        "Payment receipt - Smart Finance Advisor",
         html,
     )

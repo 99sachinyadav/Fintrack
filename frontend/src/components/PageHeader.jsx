@@ -1,6 +1,6 @@
 export default function PageHeader({ eyebrow, title, description, actions, stats = [] }) {
   return (
-    <section className="overflow-hidden rounded-[34px] border border-slate-200/70 bg-white/85 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate/72 lg:p-8">
+    <section className="overflow-hidden rounded-[34px] border border-slate-200/70 bg-white/85 p-6 shadow-panel backdrop-blur dark:border-slate-700/80 dark:bg-slate-900/72 lg:p-8">
       <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
         <div className="max-w-3xl">
           {eyebrow ? (
@@ -25,7 +25,7 @@ export default function PageHeader({ eyebrow, title, description, actions, stats
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-[24px] border border-slate-200/70 bg-slate-50/90 p-4 dark:border-white/10 dark:bg-white/5"
+              className="rounded-[24px] border border-slate-200/70 bg-slate-50/90 p-4 dark:border-slate-700/80 dark:bg-slate-800/65"
             >
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
                 {stat.label}

@@ -7,13 +7,11 @@ from django.db import models
 
 class Transaction(models.Model):
     class Provider(models.TextChoices):
-        MANUAL = "manual", "Manual"
         STRIPE = "stripe", "Stripe"
-        RAZORPAY = "razorpay", "Razorpay"
 
     class TransactionType(models.TextChoices):
-        CREDIT = "credit", "Credit"
-        DEBIT = "debit", "Debit"
+        INCOME = "income", "Income"
+        EXPENSE = "expense", "Expense"
 
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"
@@ -27,6 +25,7 @@ class Transaction(models.Model):
     )
     provider = models.CharField(max_length=20, choices=Provider.choices)
     external_id = models.CharField(max_length=120, blank=True)
+    stripe_payment_id = models.CharField(max_length=120, blank=True)
     amount = models.DecimalField(
         max_digits=16,
         decimal_places=2,
@@ -49,6 +48,7 @@ class Transaction(models.Model):
         indexes = [
             models.Index(fields=["user", "occurred_at"]),
             models.Index(fields=["provider", "external_id"]),
+            models.Index(fields=["stripe_payment_id"]),
             models.Index(fields=["user", "category"]),
         ]
         constraints = [

@@ -12,6 +12,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "id",
             "email",
             "username",
+            "role",
             "income",
             "savings",
             "liabilities",
@@ -31,12 +32,14 @@ class RegisterSerializer(serializers.ModelSerializer):
             "email",
             "username",
             "password",
+            "role",
             "income",
             "savings",
             "liabilities",
             "monthly_loan_obligation",
             "risk_appetite",
         )
+        extra_kwargs = {"role": {"required": False}}
 
     def create(self, validated_data):
         password = validated_data.pop("password")

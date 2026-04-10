@@ -1,7 +1,7 @@
 export default function SectionCard({ title, subtitle, actions, children, className = "" }) {
   return (
     <section
-      className={`rounded-[30px] border border-slate-200/80 bg-white/88 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate/75 ${className}`}
+      className={`rounded-[30px] border border-slate-200/80 bg-white/88 p-6 shadow-panel backdrop-blur dark:border-slate-700/80 dark:bg-slate-900/70 ${className}`}
     >
       {(title || actions) && (
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

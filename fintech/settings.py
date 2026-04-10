@@ -7,7 +7,15 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(BASE_DIR / ".env")
+# Use override=True so values from .env win over empty shell/User env vars on Windows.
+load_dotenv(BASE_DIR / ".env", override=True)
+
+
+def _env_str(key, default=""):
+    value = os.environ.get(key, default)
+    if value is None:
+        return ""
+    return str(value).strip().strip("'\"")
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "replace-me-for-production")
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() == "true"
@@ -51,6 +59,9 @@ INSTALLED_APPS = [
     "analytics",
     "loans",
     "notifications",
+    "market_data",
+    "recommendations",
+    "payments",
 ]
 
 MIDDLEWARE = [
@@ -169,11 +180,20 @@ COINGECKO_BASE_URL = os.environ.get(
 ALPHA_VANTAGE_API_KEY = os.environ.get("ALPHA_VANTAGE_API_KEY", "")
 GOLD_API_URL = os.environ.get("GOLD_API_URL", "")
 GOLD_API_KEY = os.environ.get("GOLD_API_KEY", "")
-STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 RAZORPAY_WEBHOOK_SECRET = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "")
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "noreply@example.com")
+STRIPE_SECRET_KEY = _env_str("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = _env_str("STRIPE_WEBHOOK_SECRET")
 DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL") or EMAIL_HOST_USER or "noreply@localhost"
 
 LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO")
 LOGGING = {

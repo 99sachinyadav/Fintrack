@@ -1,6 +1,9 @@
 from decimal import Decimal, ROUND_HALF_UP
 
+from django.db.models import Sum
+
 from loans.models import LoanProvider
+from transactions.models import Transaction
 
 
 def calculate_emi(principal, annual_rate, tenure_months):
@@ -17,22 +20,41 @@ def calculate_emi(principal, annual_rate, tenure_months):
 
 def evaluate_financial_health(user, assets):
     income = user.income or Decimal("0.00")
+    expenses = (
+        Transaction.objects.filter(
+            user=user,
+            transaction_type=Transaction.TransactionType.EXPENSE,
+        ).aggregate(total=Sum("amount"))["total"]
+        if income
+        else Decimal("0.00")
+    )
+    expenses = expenses or Decimal("0.00")
     savings_ratio = (user.savings / income) if income else Decimal("0.00")
+    expense_ratio = (expenses / income) if income else Decimal("0.00")
     loan_burden = (user.monthly_loan_obligation / income) if income else Decimal("0.00")
     net_worth = assets + user.savings - user.liabilities
 
-    if savings_ratio >= Decimal("0.30") and loan_burden <= Decimal("0.20"):
+    if savings_ratio >= Decimal("0.45") and expense_ratio <= Decimal("0.45") and loan_burden <= Decimal("0.20"):
+        score = "EXCELLENT"
+    elif savings_ratio >= Decimal("0.30") and expense_ratio <= Decimal("0.60") and loan_burden <= Decimal("0.30"):
         score = "GOOD"
-    elif savings_ratio >= Decimal("0.15") and loan_burden <= Decimal("0.40"):
+    elif savings_ratio >= Decimal("0.15") and expense_ratio <= Decimal("0.75") and loan_burden <= Decimal("0.40"):
         score = "AVERAGE"
     else:
-        score = "RISKY"
+        score = "POOR"
 
     return {
         "net_worth": net_worth,
         "savings_ratio": (savings_ratio * Decimal("100")).quantize(Decimal("0.01")),
+        "expense_ratio": (expense_ratio * Decimal("100")).quantize(Decimal("0.01")),
         "loan_burden": (loan_burden * Decimal("100")).quantize(Decimal("0.01")),
         "score": score,
+        "income": income,
+        "savings": user.savings,
+        "liabilities": user.liabilities,
+        "monthly_loan_obligation": user.monthly_loan_obligation,
+        "expenses": expenses,
+        "assets": assets,
     }
 
 

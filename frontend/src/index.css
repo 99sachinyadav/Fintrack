@@ -31,9 +31,10 @@ body {
 
 .dark body {
   background:
-    radial-gradient(circle at top left, rgba(91, 231, 196, 0.12), transparent 22%),
-    radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 18%),
-    linear-gradient(180deg, #07111f 0%, #0d1728 46%, #101c2f 100%);
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 24%),
+    radial-gradient(circle at top right, rgba(30, 41, 59, 0.36), transparent 24%),
+    linear-gradient(180deg, #020617 0%, #0b1220 50%, #111827 100%);
+  color: #e2e8f0;
 }
 
 * {
@@ -66,9 +67,12 @@ body {
 }
 
 .glass-surface {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(10, 18, 33, 0.68);
-  backdrop-filter: blur(18px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(9, 14, 25, 0.82);
+  box-shadow:
+    0 18px 40px rgba(2, 6, 23, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
 }
 
 .light-surface {
@@ -102,18 +106,18 @@ body {
 }
 
 .dark .field-control {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.64);
+  color: #f8fafc;
 }
 
 .dark .field-control::placeholder {
-  color: #cbd5e1;
+  color: #94a3b8;
 }
 
 .dark .field-control:focus {
-  border-color: rgba(91, 231, 196, 0.7);
-  box-shadow: 0 0 0 4px rgba(91, 231, 196, 0.1);
+  border-color: rgba(56, 189, 248, 0.72);
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.16);
 }
 
 .secondary-action {
@@ -132,13 +136,40 @@ body {
 }
 
 .dark .secondary-action {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: #ffffff;
+  border-color: rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.58);
+  color: #f8fafc;
 }
 
 .dark .secondary-action:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(30, 41, 59, 0.78);
+}
+
+.primary-action {
+  border-radius: 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.primary-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+}
+
+.dark .primary-action {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #e2e8f0;
+}
+
+.dark .primary-action:hover {
+  background: linear-gradient(135deg, #0b1220 0%, #172033 100%);
+  box-shadow: 0 12px 26px rgba(2, 6, 23, 0.42);
 }
 
 .auth-shell {
@@ -213,6 +244,16 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(255, 255, 255, 0.05);
   color: #f3f4f6;
+}
+
+.auth-form-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.03) 100%);
+  box-shadow:
+    0 24px 60px rgba(2, 6, 23, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(18px);
 }
 
 .auth-divider {

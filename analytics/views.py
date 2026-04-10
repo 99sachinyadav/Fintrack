@@ -26,14 +26,14 @@ class DashboardAnalyticsView(generics.GenericAPIView):
             .order_by("month")
         )
         expenses = (
-            transactions.filter(transaction_type=Transaction.TransactionType.DEBIT)
+            transactions.filter(transaction_type=Transaction.TransactionType.EXPENSE)
             .annotate(month=TruncMonth("occurred_at"))
             .values("month")
             .annotate(total=Sum("amount"))
             .order_by("month")
         )
         spending = (
-            transactions.filter(transaction_type=Transaction.TransactionType.DEBIT)
+            transactions.filter(transaction_type=Transaction.TransactionType.EXPENSE)
             .values("category")
             .annotate(total=Sum("amount"))
             .order_by("-total")
@@ -84,3 +84,58 @@ class FinancialHealthView(generics.GenericAPIView):
             Decimal("0.00"),
         )
         return Response(evaluate_financial_health(request.user, assets))
+
+
+class ProjectionEngineView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        import datetime
+        
+        initial_amount = float(request.data.get("initial_amount", 10000))
+        monthly_contribution = float(request.data.get("monthly_contribution", 500))
+        years = int(request.data.get("years", 5))
+        asset_type = request.data.get("asset_type", "blended").lower()
+
+        # APY and Volatility approximations
+        returns = {
+            "crypto": {"apy": 0.18, "volatility": 0.40},
+            "stock": {"apy": 0.08, "volatility": 0.15},
+            "gold": {"apy": 0.04, "volatility": 0.05},
+            "blended": {"apy": 0.09, "volatility": 0.12},
+        }
+        
+        rates = returns.get(asset_type, returns["blended"])
+        monthly_rate = rates["apy"] / 12
+        baseline_rate = 0.02 / 12  # Standard 2% savings baseline
+
+        months = years * 12
+        current_date = datetime.date.today().replace(day=1)
+        
+        projected = initial_amount
+        baseline = initial_amount
+        
+        data = []
+        for i in range(months + 1):
+            if i > 0:
+                # Add monthly contribution at the start of the month
+                projected += monthly_contribution
+                baseline += monthly_contribution
+                
+                # Apply compounded return
+                projected *= (1 + monthly_rate)
+                baseline *= (1 + baseline_rate)
+            
+            data.append({
+                "month": current_date.strftime("%b %Y"),
+                "projected_value": round(projected, 2),
+                "baseline_value": round(baseline, 2),
+            })
+            
+            # native month addition
+            if current_date.month == 12:
+                current_date = current_date.replace(year=current_date.year + 1, month=1)
+            else:
+                current_date = current_date.replace(month=current_date.month + 1)
+
+        return Response({"projection": data})

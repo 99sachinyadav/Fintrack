@@ -9,7 +9,9 @@ urlpatterns = [
     path("api/investments/", include("investments.urls")),
     path("api/transactions/", include("transactions.urls")),
     path("api/analytics/", include("analytics.urls")),
+    path("api/market-data/", include("market_data.urls")),
+    path("api/recommendations/", include("recommendations.urls")),
     path("api/loans/", include("loans.urls")),
     path("api/notifications/", include("notifications.urls")),
-    path("api/webhooks/", include("transactions.webhook_urls")),
+    path("api/payments/", include("payments.urls")),
 ]

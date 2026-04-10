@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AtSign, Eye, Fingerprint, LockKeyhole, MoveRight, ShieldCheck, Sparkles, WalletCards } from "lucide-react";
+import { Fingerprint, MoveRight, ShieldCheck, Sparkles, WalletCards } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -79,16 +79,13 @@ export default function LoginPage() {
                 <label className="mb-3 block text-base font-semibold text-slate-200">
                   Email Address
                 </label>
-                <div className="relative">
-                  <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
-                  <input
-                    name="email"
-                    type="email"
-                    placeholder="operator@finpulse.io"
-                    onChange={onChange}
-                    className="auth-input pl-12"
-                  />
-                </div>
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="operator@finpulse.io"
+                  onChange={onChange}
+                  className="auth-input"
+                />
               </div>
 
               <div>
@@ -100,17 +97,13 @@ export default function LoginPage() {
                     Forgot Access?
                   </button>
                 </div>
-                <div className="relative">
-                  <LockKeyhole className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
-                  <input
-                    name="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    onChange={onChange}
-                    className="auth-input pl-12 pr-12"
-                  />
-                  <Eye className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
-                </div>
+                <input
+                  name="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  onChange={onChange}
+                  className="auth-input"
+                />
               </div>
 
               <label className="flex items-center gap-3 text-base text-slate-300">

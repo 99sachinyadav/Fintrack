@@ -1,27 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ExpenseBarChart from "../charts/ExpenseBarChart";
 import SectionCard from "../components/SectionCard";
 import { transactionApi } from "../services/api";
 import { formatCurrency } from "../utils/formatters";
 
-const initialForm = {
-  amount: "",
-  category: "",
-  transaction_type: "debit",
-  currency: "USD",
-  description: "",
-  occurred_at: "",
-  metadata: {},
-};
-
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState([]);
-  const [summary, setSummary] = useState([]);
-  const [form, setForm] = useState(initialForm);
+  const [summary, setSummary] = useState({
+    monthly_breakdown: [],
+    total_income: 0,
+    total_expenses: 0,
+    net_savings: 0,
+    category_spending: [],
+  });
 
   const loadData = async () => {
     const [transactionsResponse, summaryResponse] = await Promise.all([
-      transactionApi.list(),
+      transactionApi.list({ page_size: 100 }),
       transactionApi.summary(),
     ]);
     setTransactions(transactionsResponse.data.results || transactionsResponse.data);
@@ -31,55 +26,39 @@ export default function TransactionsPage() {
   useEffect(() => {
     loadData().catch(() => {
       setTransactions([]);
-      setSummary([]);
+      setSummary({
+        monthly_breakdown: [],
+        total_income: 0,
+        total_expenses: 0,
+        net_savings: 0,
+        category_spending: [],
+      });
     });
   }, []);
 
-  const onSubmit = async (event) => {
-    event.preventDefault();
-    await transactionApi.create(form);
-    setForm(initialForm);
-    loadData();
-  };
+  const expenseSeries = useMemo(
+    () =>
+      (summary.monthly_breakdown || []).filter(
+        (item) => item.transaction_type === "expense",
+      ),
+    [summary],
+  );
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-      <SectionCard title="Add transaction" subtitle="Capture manual credits and debits alongside webhooks">
-        <form onSubmit={onSubmit} className="grid gap-4">
-          {["amount", "category", "currency", "description", "occurred_at"].map((field) => (
-            <input
-              key={field}
-              type={field === "amount" ? "number" : field === "occurred_at" ? "datetime-local" : "text"}
-              name={field}
-              value={form[field]}
-              placeholder={field.replaceAll("_", " ")}
-              onChange={(event) => setForm({ ...form, [field]: event.target.value })}
-              className="field-control"
-            />
-          ))}
-          <select
-            name="transaction_type"
-            value={form.transaction_type}
-            onChange={(event) => setForm({ ...form, transaction_type: event.target.value })}
-            className="field-control"
-          >
-            <option value="debit">Debit</option>
-            <option value="credit">Credit</option>
-          </select>
-          <button
-            type="submit"
-            className="rounded-2xl bg-slate-900 px-4 py-3 font-semibold text-white dark:bg-brand dark:text-ink"
-          >
-            Save transaction
-          </button>
-        </form>
+    <div className="grid gap-6">
+      <SectionCard title="Auto captured transaction analytics" subtitle="Stripe webhooks drive all income and expense entries">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Metric label="Total income" value={formatCurrency(summary.total_income || 0)} tone="text-emerald-400" />
+          <Metric label="Total expenses" value={formatCurrency(summary.total_expenses || 0)} tone="text-rose-300" />
+          <Metric label="Net savings" value={formatCurrency(summary.net_savings || 0)} tone="text-sky-300" />
+        </div>
       </SectionCard>
 
-      <div className="grid gap-6">
+      <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <SectionCard title="Monthly expense trend" subtitle="Track monthly spending behavior">
-          <ExpenseBarChart data={summary.filter((item) => item.transaction_type === "debit")} />
+          <ExpenseBarChart data={expenseSeries} />
         </SectionCard>
-        <SectionCard title="Transaction feed" subtitle="Manual entries plus webhook imports">
+        <SectionCard title="Transaction feed" subtitle="Stripe webhook events only">
           <div className="grid gap-3">
             {transactions.map((transaction) => (
               <div
@@ -89,7 +68,7 @@ export default function TransactionsPage() {
                 <div>
                   <div className="font-semibold text-slate-950 dark:text-white">{transaction.category}</div>
                   <div className="text-sm text-slate-500 dark:text-slate-300">
-                    {transaction.provider} · {transaction.transaction_type}
+                    {transaction.provider} · {transaction.transaction_type} · {transaction.stripe_payment_id || transaction.external_id}
                   </div>
                 </div>
                 <div className="text-left sm:text-right">
@@ -104,12 +83,21 @@ export default function TransactionsPage() {
             ))}
             {transactions.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-300">
-                No transactions yet. Add one or connect payment webhooks.
+                No transactions yet. Complete Stripe payments to populate this feed.
               </p>
             ) : null}
           </div>
         </SectionCard>
       </div>
+    </div>
+  );
+}
+
+function Metric({ label, value, tone }) {
+  return (
+    <div className="rounded-2xl border border-slate-200/70 bg-white/50 p-4 dark:border-slate-700/80 dark:bg-slate-800/60">
+      <div className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">{label}</div>
+      <div className={`mt-2 text-2xl font-semibold ${tone}`}>{value}</div>
     </div>
   );
 }

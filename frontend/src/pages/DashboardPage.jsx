@@ -1,21 +1,12 @@
-import {
-  Bell,
-  BriefcaseBusiness,
-  ChevronRight,
-  CreditCard,
-  Landmark,
-  LogOut,
-  Settings,
-  ShieldCheck,
-  Sparkles,
-  Wallet,
-} from "lucide-react";
+import { Bell, ChevronRight, CreditCard, Landmark, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import CategoryPieChart from "../charts/CategoryPieChart";
-import InvestmentGrowthChart from "../charts/InvestmentGrowthChart";
+import ExpenseBarChart from "../charts/ExpenseBarChart";
+import NetProfitChart from "../charts/NetProfitChart";
 import { useAuth } from "../context/AuthContext";
 import {
+  authApi,
   dashboardApi,
   investmentApi,
   loanApi,
@@ -25,16 +16,19 @@ import {
 import { formatCurrency } from "../utils/formatters";
 
 const topTabs = ["Markets", "Portfolio", "Analytics", "Vault"];
-const sideNav = [
-  { label: "Overview", icon: <Landmark size={18} />, to: "/" },
-  { label: "Assets", icon: <BriefcaseBusiness size={18} />, to: "/investments" },
-  { label: "Trade", icon: <Wallet size={18} />, to: "/transactions" },
-  { label: "Intelligence", icon: <Sparkles size={18} />, to: "/loans" },
-  { label: "Security", icon: <ShieldCheck size={18} />, to: "/profile" },
-];
+
+const emptyTxSummary = {
+  total_income: 0,
+  total_expenses: 0,
+  net_savings: 0,
+  monthly_breakdown: [],
+  monthly_trend: [],
+  net_profit_chart: [],
+  category_spending: [],
+};
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user, setUser } = useAuth();
   const [state, setState] = useState({
     analytics: null,
     summary: null,
@@ -42,6 +36,8 @@ export default function DashboardPage() {
     loans: [],
     notifications: [],
     transactions: [],
+    txSummary: emptyTxSummary,
+    paymentsUpdatedAt: null,
   });
 
   useEffect(() => {
@@ -53,6 +49,7 @@ export default function DashboardPage() {
         loansResponse,
         notificationsResponse,
         transactionsResponse,
+        txSummaryResponse,
       ] = await Promise.all([
         dashboardApi.analytics(),
         investmentApi.summary(),
@@ -60,6 +57,7 @@ export default function DashboardPage() {
         loanApi.recommendations(),
         notificationApi.list(),
         transactionApi.list(),
+        transactionApi.summary(),
       ]);
 
       setState({
@@ -71,6 +69,8 @@ export default function DashboardPage() {
           notificationsResponse.data.results || notificationsResponse.data,
         transactions:
           transactionsResponse.data.results || transactionsResponse.data,
+        txSummary: { ...emptyTxSummary, ...txSummaryResponse.data },
+        paymentsUpdatedAt: new Date(),
       });
     }
 
@@ -79,21 +79,44 @@ export default function DashboardPage() {
     });
   }, []);
 
-  const categorySpending = state.analytics?.category_spending || [];
-  const recentTransactions = state.transactions.slice(0, 3);
-  const bestLoan = state.loans[0];
-  const totalCategorySpend = categorySpending.reduce(
-    (sum, item) => sum + Number(item.total || 0),
-    0,
-  );
+  useEffect(() => {
+    async function refreshStripePayments() {
+      try {
+        const [txList, txSum, profileRes] = await Promise.all([
+          transactionApi.list(),
+          transactionApi.summary(),
+          authApi.profile(),
+        ]);
+        setUser(profileRes.data);
+        setState((current) => ({
+          ...current,
+          transactions: txList.data.results || txList.data,
+          txSummary: { ...emptyTxSummary, ...txSum.data },
+          paymentsUpdatedAt: new Date(),
+        }));
+      } catch {
+        /* keep current data */
+      }
+    }
 
-  const expenseRows = categorySpending.slice(0, 3).map((item) => ({
-    ...item,
-    percentage:
-      totalCategorySpend > 0
-        ? Math.max(18, (Number(item.total || 0) / totalCategorySpend) * 100)
-        : 24,
-  }));
+    refreshStripePayments();
+    const intervalMs = 12_000;
+    const timer = setInterval(refreshStripePayments, intervalMs);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refreshStripePayments();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [setUser]);
+
+  const categorySpending = state.txSummary?.category_spending || [];
+  const monthlyTrend = state.txSummary?.monthly_trend || [];
+  const netProfitChart = state.txSummary?.net_profit_chart || monthlyTrend;
+  const recentTransactions = state.transactions;
+  const bestLoan = state.loans[0];
 
   return (
     <div className="min-h-screen bg-[#0f1217] text-white">
@@ -143,71 +166,53 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-[1460px] gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[280px_1fr] lg:px-8">
-        <aside className="hidden border-r border-white/6 pr-8 lg:flex lg:min-h-[calc(100vh-170px)] lg:flex-col">
-          <div className="rounded-[24px] border border-white/6 bg-[#11151b] p-5">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-[linear-gradient(135deg,#2e3746_0%,#0d1116_100%)]" />
+      <div className="mx-auto max-w-[1460px] px-4 py-8 sm:px-6 lg:px-8">
+        <main className="grid min-w-0 gap-8">
+          <section className="rounded-[28px] border border-white/8 bg-[linear-gradient(135deg,rgba(16,185,129,0.08),rgba(15,23,42,0.95))] p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-xl font-semibold tracking-[-0.03em] text-white">
-                  {user?.username || "Alchemist Prime"}
+                <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-emerald-400/90">
+                  Stripe payments · Live
                 </div>
-                <div className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                  Tier III Operator
+                <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
+                  Income and expense rows are created from Stripe webhooks. This panel refreshes about every 12 seconds and when you return to this tab.
+                </p>
+              </div>
+              {state.paymentsUpdatedAt ? (
+                <span className="rounded-full bg-white/5 px-3 py-1.5 text-xs text-slate-400">
+                  Last sync: {state.paymentsUpdatedAt.toLocaleTimeString()}
+                </span>
+              ) : null}
+            </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl border border-emerald-500/20 bg-[#111418] p-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400/80">
+                  Incoming (Income)
+                </div>
+                <div className="mt-2 text-2xl font-semibold tabular-nums text-emerald-300">
+                  +{formatCurrency(state.txSummary?.total_income || 0)}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-rose-500/20 bg-[#111418] p-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-400/80">
+                  Outgoing (Expense)
+                </div>
+                <div className="mt-2 text-2xl font-semibold tabular-nums text-rose-300">
+                  −{formatCurrency(state.txSummary?.total_expenses || 0)}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-cyan-500/20 bg-[#111418] p-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400/80">
+                  Net flow
+                </div>
+                <div className="mt-2 text-2xl font-semibold tabular-nums text-cyan-200">
+                  {Number(state.txSummary?.net_savings || 0) >= 0 ? "+" : ""}
+                  {formatCurrency(state.txSummary?.net_savings || 0)}
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="mt-5 rounded-[22px] border border-fuchsia-500/20 bg-[linear-gradient(135deg,rgba(92,23,126,0.5),rgba(51,19,68,0.9))] p-5">
-            <div className="text-xl font-semibold text-white">Upgrade to Neon</div>
-            <div className="mt-2 text-sm leading-6 text-slate-300">
-              Unlock deep liquidity pools, faster analytics refresh, and enhanced trust intelligence.
-            </div>
-          </div>
-
-          <nav className="mt-8 grid gap-2">
-            {sideNav.map((item, index) => (
-              <NavLink
-                key={item.label}
-                to={item.to}
-                end={item.to === "/"}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-2xl px-4 py-4 text-left text-[1.05rem] transition ${
-                    isActive
-                      ? "border-l-4 border-cyan-400 bg-[linear-gradient(90deg,rgba(24,217,255,0.18),rgba(24,217,255,0.05))] text-cyan-300"
-                      : "text-slate-300 hover:bg-white/5"
-                  }`
-                }
-              >
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className="mt-auto space-y-2 pt-10">
-            <button
-              type="button"
-              className="flex items-center gap-3 rounded-2xl px-4 py-4 text-left text-base text-slate-300 transition hover:bg-white/5"
-            >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/8 text-sm">
-                ?
-              </span>
-              Support
-            </button>
-            <button
-              type="button"
-              onClick={logout}
-              className="flex items-center gap-3 rounded-2xl px-4 py-4 text-left text-base text-slate-300 transition hover:bg-white/5"
-            >
-              <LogOut size={18} />
-              Logout
-            </button>
-          </div>
-        </aside>
-
-        <main className="grid min-w-0 gap-8">
           <section className="grid gap-6 xl:grid-cols-[0.72fr_1.28fr]">
             <Panel className="bg-[radial-gradient(circle_at_top,rgba(24,217,255,0.14),transparent_55%),#1b1f25]">
               <div className="flex items-start justify-between gap-4">
@@ -233,17 +238,17 @@ export default function DashboardPage() {
                   Deposit
                 </Link>
                 <Link
-                  to="/transactions"
+                  to="/payments"
                   className="rounded-2xl bg-white/10 px-8 py-4 text-lg font-semibold text-white transition hover:bg-white/15"
                 >
-                  Withdraw
+                  Pay with Stripe
                 </Link>
               </div>
             </Panel>
 
             <Panel>
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-[15px] text-slate-200">Portfolio Growth</div>
+                <div className="text-[15px] text-slate-200">Net Profit</div>
                 <div className="flex items-center gap-3 text-sm">
                   {["1W", "1M", "1Y"].map((item, index) => (
                     <span
@@ -260,43 +265,19 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="mt-6 h-[300px]">
-                <InvestmentGrowthChart data={state.analytics?.investment_growth || []} />
+                <NetProfitChart data={netProfitChart} />
               </div>
             </Panel>
           </section>
 
           <section className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr]">
             <Panel>
-              <div className="text-[15px] font-semibold text-white">Monthly Expenses</div>
-              <div className="mt-8 grid gap-7">
-                {expenseRows.length > 0 ? (
-                  expenseRows.map((item, index) => (
-                    <div key={item.category}>
-                      <div className="mb-3 flex items-center justify-between gap-4">
-                        <div className="text-base text-slate-300">{item.category}</div>
-                        <div className="text-2xl font-semibold tracking-[-0.04em] text-slate-100">
-                          {formatCurrency(item.total)}
-                        </div>
-                      </div>
-                      <div className="h-3 overflow-hidden rounded-full bg-[#0d1014]">
-                        <div
-                          className={`h-full rounded-full ${
-                            index === 0
-                              ? "bg-cyan-400"
-                              : index === 1
-                                ? "bg-fuchsia-300"
-                                : "bg-lime-400"
-                          }`}
-                          style={{ width: `${item.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-sm text-slate-400">
-                    Add transaction data to unlock expense analytics.
-                  </div>
-                )}
+              <div className="text-[15px] font-semibold text-white">Monthly Trend</div>
+              <div className="mt-1 text-sm text-slate-400">
+                Stripe incoming and outgoing payments grouped by month
+              </div>
+              <div className="mt-6 h-[280px]">
+                <ExpenseBarChart data={monthlyTrend} />
               </div>
             </Panel>
 
@@ -339,9 +320,9 @@ export default function DashboardPage() {
           <section className="rounded-[32px] border border-white/6 bg-[#1a1e24]">
             <div className="flex flex-col gap-4 border-b border-white/6 px-6 py-6 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <div className="text-[15px] font-semibold text-white">Recent Activity</div>
+                <div className="text-[15px] font-semibold text-white">All transaction history</div>
                 <div className="mt-1 text-sm text-slate-400">
-                  Verified transaction ledger across your financial operations
+                  Each row is incoming (income) or outgoing (expense). The list updates automatically after Stripe confirms payment.
                 </div>
               </div>
               <Link
@@ -369,13 +350,24 @@ export default function DashboardPage() {
                   >
                     <div className="flex items-center gap-4">
                       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/8 text-cyan-300">
-                        {transaction.transaction_type === "credit" ? (
+                        {transaction.transaction_type === "income" ? (
                           <Landmark size={20} />
                         ) : (
                           <CreditCard size={20} />
                         )}
                       </div>
                       <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${
+                              transaction.transaction_type === "income"
+                                ? "bg-emerald-500/20 text-emerald-300"
+                                : "bg-rose-500/20 text-rose-300"
+                            }`}
+                          >
+                            {transaction.transaction_type === "income" ? "Incoming" : "Outgoing"}
+                          </span>
+                        </div>
                         <div className="text-xl font-semibold text-white">
                           {transaction.category}
                         </div>
@@ -390,7 +382,7 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="text-2xl font-semibold tracking-[-0.04em] text-white">
-                      {transaction.transaction_type === "debit" ? "-" : "+"}
+                      {transaction.transaction_type === "expense" ? "-" : "+"}
                       {formatCurrency(transaction.amount, transaction.currency)}
                     </div>
 
@@ -411,7 +403,7 @@ export default function DashboardPage() {
                 ))
               ) : (
                 <div className="px-6 py-8 text-sm text-slate-400">
-                  No activity yet. Add transactions or connect payment webhooks.
+                  No Stripe payments yet. Use Payments to run checkout or a payment link—successful payments appear here after webhooks fire.
                 </div>
               )}
             </div>

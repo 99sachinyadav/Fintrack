@@ -10,8 +10,11 @@ import {
 
 export default function ExpenseBarChart({ data }) {
   const chartData = data.map((item) => ({
-    month: item.month ? new Date(item.month).toLocaleDateString("en-US", { month: "short" }) : "Now",
-    total: Number(item.total || 0),
+    month: item.month
+      ? new Date(item.month).toLocaleDateString("en-US", { month: "short" })
+      : "Now",
+    income: Number(item.income || 0),
+    expenses: Number(item.expenses || item.total || 0),
   }));
 
   return (
@@ -21,7 +24,8 @@ export default function ExpenseBarChart({ data }) {
         <XAxis dataKey="month" stroke="#94a3b8" />
         <YAxis stroke="#94a3b8" />
         <Tooltip />
-        <Bar dataKey="total" fill="#5b8fff" radius={[10, 10, 0, 0]} />
+        <Bar dataKey="income" fill="#18d9ff" radius={[10, 10, 0, 0]} />
+        <Bar dataKey="expenses" fill="#fb7185" radius={[10, 10, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

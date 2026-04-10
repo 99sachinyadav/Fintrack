@@ -6,6 +6,11 @@ from django.db import models
 
 
 class User(AbstractUser):
+    class Role(models.TextChoices):
+        USER = "user", "User"
+        LOAN_PROVIDER = "loan_provider", "Loan Provider"
+        ADMIN = "admin", "Admin"
+
     class RiskAppetite(models.TextChoices):
         LOW = "low", "Low"
         MEDIUM = "medium", "Medium"
@@ -29,6 +34,7 @@ class User(AbstractUser):
         default=50,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.USER)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
