@@ -15,7 +15,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../app/static/frontend",
+    outDir: "dist",
     emptyOutDir: true,
     assetsDir: "assets",
     rollupOptions: {
