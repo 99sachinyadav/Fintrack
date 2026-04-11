@@ -12,6 +12,8 @@ import PaymentsPage from "./pages/PaymentsPage";
 import ProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
 import TransactionsPage from "./pages/TransactionsPage";
+import LandingPage from "./pages/LandingPage";
+import { useAuth } from "./context/AuthContext";
 
 function AppShell() {
   return (
@@ -20,7 +22,7 @@ function AppShell() {
         <Sidebar />
         <main className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
           <Routes>
-            <Route index element={<DashboardPage />} />
+            <Route path="dashboard" element={<DashboardPage />} />
             <Route path="investments" element={<InvestmentsPage />} />
             <Route path="transactions" element={<TransactionsPage />} />
             <Route path="payments" element={<PaymentsPage />} />
@@ -29,7 +31,7 @@ function AppShell() {
             <Route path="loans" element={<LoansPage />} />
             <Route path="provider-panel" element={<LoanProviderPanelPage />} />
             <Route path="profile" element={<ProfilePage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </main>
       </div>
@@ -38,10 +40,21 @@ function AppShell() {
 }
 
 export default function App() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-ink text-white">
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
+      <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+      <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
       <Route
         path="/*"
         element={

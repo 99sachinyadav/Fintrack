@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
-  { to: "/", label: "Dashboard", icon: BarChart3 },
+  { to: "/dashboard", label: "Dashboard", icon: BarChart3 },
   { to: "/investments", label: "Investment", icon: Briefcase },
   { to: "/transactions", label: "Transaction", icon: CreditCard },
   { to: "/payments", label: "Payments", icon: QrCode },
