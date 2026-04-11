@@ -10,7 +10,7 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from services.email_service import send_payment_receipt_email
+from services.email_service import send_payment_link_email, send_payment_receipt_email
 from services.transaction_categorization import categorize_transaction
 from transactions.models import Transaction, WebhookEvent
 from users.models import User
@@ -286,6 +286,8 @@ class PaymentLinkView(APIView):
             )
         amount = Decimal(str(request.data.get("amount", "0")))
         description = request.data.get("description", "Smart Finance Advisor Payment")
+        flow = request.data.get("flow", "outgoing")
+        payer_email = request.data.get("payer_email", "").strip()
         if amount <= 0:
             return Response({"detail": "Amount must be positive."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -313,6 +315,10 @@ class PaymentLinkView(APIView):
                 metadata=metadata,
                 payment_intent_data={"metadata": metadata},
             )
+            
+            if flow == "incoming" and payer_email:
+                send_payment_link_email(request.user, payer_email, str(amount), description, link.url)
+                
         except stripe.error.StripeError as exc:
             err = getattr(exc, "user_message", None) or getattr(exc, "message", None) or str(exc)
             return Response({"detail": err}, status=status.HTTP_400_BAD_REQUEST)

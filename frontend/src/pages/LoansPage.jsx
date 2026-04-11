@@ -22,6 +22,7 @@ export default function LoansPage() {
     amount_requested: "",
     tenure_months: "",
     note: "",
+    salary_slip: null,
   });
   const [form, setForm] = useState(initialForm);
   const [emiResult, setEmiResult] = useState(null);
@@ -69,12 +70,17 @@ export default function LoansPage() {
 
   const applyLoan = async (event) => {
     event.preventDefault();
-    await loanApi.apply({
-      ...applicationForm,
-      amount_requested: Number(applicationForm.amount_requested),
-      tenure_months: Number(applicationForm.tenure_months),
-    });
-    setApplicationForm({ provider: "", amount_requested: "", tenure_months: "", note: "" });
+    
+    const formData = new FormData();
+    formData.append("provider", applicationForm.provider);
+    formData.append("amount_requested", Number(applicationForm.amount_requested));
+    formData.append("tenure_months", Number(applicationForm.tenure_months));
+    if (applicationForm.note) formData.append("note", applicationForm.note);
+    if (applicationForm.salary_slip) formData.append("salary_slip", applicationForm.salary_slip);
+
+    await loanApi.apply(formData);
+    
+    setApplicationForm({ provider: "", amount_requested: "", tenure_months: "", note: "", salary_slip: null });
     const response = await loanApi.applications();
     setApplications(response.data.results || response.data);
   };
@@ -226,6 +232,18 @@ export default function LoansPage() {
               value={applicationForm.note}
               onChange={(event) => setApplicationForm({ ...applicationForm, note: event.target.value })}
             />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Salary Slip (required for verification)
+              </label>
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                className="field-control cursor-pointer file:mr-4 file:rounded-xl file:border-0 file:bg-brand/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand hover:file:bg-brand/20 dark:file:bg-brand/20 dark:hover:file:bg-brand/30"
+                onChange={(event) => setApplicationForm({ ...applicationForm, salary_slip: event.target.files[0] })}
+                required
+              />
+            </div>
             <button type="submit" className="primary-action px-4 py-3 font-semibold">
               Apply
             </button>
@@ -256,6 +274,18 @@ export default function LoansPage() {
                 {item.status === "rejected" ? (
                   <div className="mt-2 text-sm text-rose-600 dark:text-rose-300">
                     Rejected by provider.
+                  </div>
+                ) : null}
+                {item.salary_slip_image_url ? (
+                  <div className="mt-2 text-sm">
+                    <a 
+                      href={item.salary_slip_image_url} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="font-medium text-brand hover:underline"
+                    >
+                      View Attached Salary Slip
+                    </a>
                   </div>
                 ) : null}
               </div>

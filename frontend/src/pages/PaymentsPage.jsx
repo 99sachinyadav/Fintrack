@@ -27,6 +27,7 @@ export default function PaymentsPage() {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("Smart Finance Advisor Payment");
   const [flow, setFlow] = useState("incoming");
+  const [payerEmail, setPayerEmail] = useState("");
   const [paymentLink, setPaymentLink] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -92,8 +93,12 @@ export default function PaymentsPage() {
         amount: Number(amount),
         description,
         flow,
+        payer_email: flow === "incoming" ? payerEmail : undefined,
       });
       setPaymentLink(response.data.payment_link_url);
+      if (flow === "incoming" && payerEmail) {
+        setMessage(`Payment link generated and emailed to ${payerEmail}!`);
+      }
     } catch (error) {
       setMessage(formatApiError(error));
     } finally {
@@ -125,6 +130,15 @@ export default function PaymentsPage() {
             <option value="incoming">Incoming (Income received)</option>
             <option value="outgoing">Outgoing (Expense paid)</option>
           </select>
+          {flow === "incoming" && (
+            <input
+              type="email"
+              value={payerEmail}
+              onChange={(event) => setPayerEmail(event.target.value)}
+              className="field-control"
+              placeholder="Payer's Email (Optional - sends QR direct)"
+            />
+          )}
           <p className="text-sm text-slate-500 dark:text-slate-300">
             Use <strong>Incoming</strong> when you are receiving money and want it to appear in the dashboard&apos;s income card.
           </p>

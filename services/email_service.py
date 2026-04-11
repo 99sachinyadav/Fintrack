@@ -10,7 +10,7 @@ from services.financial_health import evaluate_financial_health
 from transactions.models import Transaction
 
 
-def _send_email(user, notification_type, subject, html):
+def _send_email(user, notification_type, subject, html, to_email=None):
     try:
         log = NotificationLog.objects.create(
             user=user,
@@ -26,7 +26,7 @@ def _send_email(user, notification_type, subject, html):
             subject=subject,
             message=html,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
+            recipient_list=[to_email or user.email],
             fail_silently=False,
             html_message=html,
         )
@@ -107,3 +107,30 @@ def send_payment_receipt_email(user, transaction):
         "Payment receipt - Smart Finance Advisor",
         html,
     )
+
+
+def send_payment_link_email(user, payer_email, amount, description, payment_link_url):
+    import urllib.parse
+    qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={urllib.parse.quote(payment_link_url)}"
+    html = (
+        "<h1>Payment Request</h1>"
+        f"<p>Hello,</p>"
+        f"<p>You have received a new payment request for <strong>{amount} USD</strong>.</p>"
+        f"<p>Description: {description}</p>"
+        f"<p>Please click the link below or scan the QR code to complete the payment securely via Stripe:</p>"
+        f"<br/>"
+        f'<p><a href="{payment_link_url}" style="padding:10px 20px;background:#00daf3;color:#000;text-decoration:none;border-radius:6px;font-weight:bold;">Pay Now</a></p>'
+        f"<br/>"
+        f"<p>Or scan this QR Code:</p>"
+        f'<img src="{qr_url}" alt="Payment QR Code" width="220" height="220" style="border:1px solid #ccc;border-radius:12px;"/>'
+        f"<p><br/>Thank you,</p>"
+        f"<p>Smart Finance Advisor</p>"
+    )
+    return _send_email(
+        user,
+        NotificationLog.NotificationType.PAYMENT_REQUEST,
+        f"Payment Request: {description}",
+        html,
+        to_email=payer_email,
+    )
+

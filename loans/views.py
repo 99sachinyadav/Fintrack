@@ -105,8 +105,11 @@ class LoanProviderDashboardView(generics.ListCreateAPIView):
         serializer.save(created_by=self.request.user)
 
 
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
+
 class LoanApplicationView(generics.ListCreateAPIView):
     serializer_class = LoanApplicationSerializer
+    parser_classes = (JSONParser, MultiPartParser, FormParser)
 
     def get_queryset(self):
         user = self.request.user
@@ -115,7 +118,26 @@ class LoanApplicationView(generics.ListCreateAPIView):
         return LoanApplication.objects.filter(user=user).select_related("provider", "user")
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Uploading loan request. FILES: {list(self.request.FILES.keys())}")
+        
+        salary_slip = self.request.FILES.get("salary_slip")
+        image_url = ""
+        if salary_slip:
+            logger.info("Found salary_slip file in request.")
+            try:
+                import cloudinary.uploader
+                upload_result = cloudinary.uploader.upload(salary_slip, resource_type="auto")
+                image_url = upload_result.get("secure_url", "")
+                logger.info(f"Cloudinary upload success: {image_url}")
+            except Exception as e:
+                logger.error(f"Cloudinary upload failed: {e}")
+                print(f"Cloudinary upload failed: {e}")
+        else:
+            logger.warning("No salary_slip file found in request.FILES.")
+            
+        serializer.save(user=self.request.user, salary_slip_image_url=image_url)
 
 
 class LoanApplicationStatusView(generics.GenericAPIView):

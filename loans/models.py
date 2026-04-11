@@ -75,5 +75,6 @@ class LoanApplication(models.Model):
     amount_requested = models.DecimalField(max_digits=14, decimal_places=2)
     tenure_months = models.PositiveIntegerField()
     note = models.CharField(max_length=255, blank=True)
+    salary_slip_image_url = models.URLField(max_length=500, blank=True, null=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)

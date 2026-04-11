@@ -212,3 +212,21 @@ LOGGING = {
     },
     "root": {"handlers": ["console"], "level": LOG_LEVEL},
 }
+
+# Cloudinary Setup
+try:
+    import cloudinary
+    import cloudinary.uploader
+    import cloudinary.api
+    
+    CLOUDINARY_CLOUD_NAME = os.environ.get("CLOUDINARY_CLOUD_NAME")
+    if CLOUDINARY_CLOUD_NAME:
+        cloudinary.config(
+            cloud_name=CLOUDINARY_CLOUD_NAME,
+            api_key=os.environ.get("CLOUDINARY_API_KEY", ""),
+            api_secret=os.environ.get("CLOUDINARY_API_SECRET", ""),
+            secure=True,
+        )
+except ImportError:
+    pass
+

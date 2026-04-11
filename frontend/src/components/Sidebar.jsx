@@ -11,7 +11,7 @@ const navItems = [
   { to: "/payments", label: "Payments", icon: QrCode },
   { to: "/market", label: "Market Trends", icon: LineChart },
   { to: "/health", label: "Health", icon: HeartPulse },
-  { to: "/loans", label: "Intelligence", icon: Sparkles },
+  { to: "/loans", label: "Loans", icon: Sparkles },
   { to: "/profile", label: "Security", icon: Shield },
 ];
 

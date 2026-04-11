@@ -46,7 +46,8 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
             "amount_requested",
             "tenure_months",
             "note",
+            "salary_slip_image_url",
             "status",
             "created_at",
         )
-        read_only_fields = ("status", "created_at")
+        read_only_fields = ("status", "created_at", "salary_slip_image_url")

@@ -7,6 +7,7 @@ class NotificationLog(models.Model):
         MONTHLY_EXPENSE = "monthly_expense", "Monthly Expense"
         PROFIT_LOSS = "profit_loss", "Profit Loss"
         LOAN_WARNING = "loan_warning", "Loan Warning"
+        PAYMENT_REQUEST = "payment_request", "Payment Request"
 
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"

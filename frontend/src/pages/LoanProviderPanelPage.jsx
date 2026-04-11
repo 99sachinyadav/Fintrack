@@ -116,6 +116,18 @@ export default function LoanProviderPanelPage() {
                   Note: {item.note}
                 </div>
               ) : null}
+              {item.salary_slip_image_url ? (
+                <div className="mt-2 text-sm">
+                  <a 
+                    href={item.salary_slip_image_url} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="font-medium text-brand hover:underline"
+                  >
+                    View Salary Slip
+                  </a>
+                </div>
+              ) : null}
               {item.status === "pending" ? (
                 <div className="mt-4 flex gap-3">
                   <button
